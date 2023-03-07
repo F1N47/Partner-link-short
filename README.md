@@ -1,2 +1,2 @@
 # Partner-link-short
-Сокращалка партнерских ссылок "Aviasales" и "Fun&amp;Sun"
+Создание партнерских ссылок "Aviasales" и "Fun&amp;Sun" если нет доступа к админке "Travelpayouts"
