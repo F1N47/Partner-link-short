@@ -1,26 +1,44 @@
 import tkinter as tk
 import re
 
-aviasales_regex = re.compile(r'https://www.aviasales.ru/(.*)')
+def encode_yandex_travel_suffix(text):
+    return (text.replace('?', '%3F')
+                .replace('=', '%3D')
+                .replace(':', '%3A')
+                .replace('/', '%2F')
+                .replace('&', '%26'))
+
+regex_patterns = [
+    (re.compile(r'https://www.aviasales.ru/(.*)'), "https://tp.media/r?marker=219224.articles&trs=30770&p=4114&u=https%3A%2F%2Faviasales.ru%2F", "Aviasales"),
+    (re.compile(r'https://level.travel/search(.*)'), "https://tp.media/r?marker=219224.articles&trs=30770&p=660&campaign_id=26&u=https%3A%2F%2Flevel.travel%2Fsearch", "Level.Travel"),
+    (re.compile(r'(https://fstravel.com/.*)'), "https://tp.media/r?marker=219224.articles&trs=30770&p=4997&campaign_id=174&u=", "FUN&SUN"),
+    (re.compile(r'https://travel.yandex.ru(/.*)'), "https://tp.media/r?marker=219224.articles&trs=30770&p=5916&campaign_id=193&u=https%3A%2F%2Ftravel.yandex.ru", "Yandex Travel"),
+    (re.compile(r'https://www.onlinetours.ru(/tours/.*)'), "https://tp.media/r?marker=219224.articles&trs=30770&p=1094&campaign_id=43&u=https%3A%2F%2Fwww.onlinetours.ru", "Onlinetours"),
+]
 
 def convert_link(event=None):
     input_link = input_box.get()
-    if "https://fstravel.com/" in input_link:
-        output_link = "https://tp.media/r?marker=219224.articles&trs=30770&p=4997&campaign_id=174&u=" + input_link
-        link_type_text.set("FUN&SUN")
-    else:
-        match = aviasales_regex.search(input_link)
-        if not match:
-            output_box.delete(0, tk.END)
-            output_box.insert(0, "Invalid link")
-            return
-        search_path = match.group(1)
-        output_link = "https://tp.media/r?marker=219224.articles&trs=30770&p=4114&u=https%3A%2F%2Faviasales.ru%2F" + search_path
-        link_type_text.set("Aviasales")
-    output_box.delete(0, tk.END)
-    output_box.insert(0, output_link)
-    input_box.delete(0, tk.END)
+    output_link = None
+    link_type = None
 
+    for pattern, prefix, pattern_type in regex_patterns:
+        match = pattern.search(input_link)
+        if match:
+            suffix = match.group(1)
+            if pattern_type == "Yandex Travel" or pattern_type == "Onlinetours":
+                suffix = encode_yandex_travel_suffix(suffix)
+            output_link = f"{prefix}{suffix}"
+            link_type = pattern_type
+            break
+
+    if not output_link:
+        output_box.delete(0, tk.END)
+        output_box.insert(0, "Invalid link")
+    else:
+        output_box.delete(0, tk.END)
+        output_box.insert(0, output_link)
+        input_box.delete(0, tk.END)
+        link_type_text.set(link_type)
 def copy_to_clipboard(event):
     output_text = output_box.get()
     window.clipboard_clear()
